@@ -91,7 +91,7 @@ var Sticky = function () {
     element.sticky.stickyFor = parseInt(element.getAttribute('data-sticky-for')) || this.options.stickyFor;
     element.sticky.stickyClass = element.getAttribute('data-sticky-class') || this.options.stickyClass;
     element.sticky.wrap = element.hasAttribute('data-sticky-wrap') ? true : this.options.wrap;
-    element.sticky.bottom = element.hasAttribute('data-sticky-bottom') ? true : this.options.stickyBottom;
+    element.sticky.bottom = element.hasAttribute('data-sticky-bottom') ? parseInt(element.getAttribute('data-sticky-bottom')) || 0 : this.options.stickyBottom;
     // @todo attribute for stickyContainer
     // element.sticky.stickyContainer = element.getAttribute('data-sticky-container') || this.options.stickyContainer;
     element.sticky.stickyContainer = this.options.stickyContainer;
@@ -277,7 +277,7 @@ var Sticky = function () {
       });
     }
 
-    if (element.sticky.bottom) {
+    if (element.sticky.bottom !== undefined) {
       // 如果固定在底部
       this.setBottomPosition(element);
       return;
@@ -344,10 +344,9 @@ var Sticky = function () {
       left: element.sticky.rect.left + 'px'
     });
 
-    if (this.scrollTop + this.vp.height > element.sticky.container.rect.top + element.sticky.container.rect.height) {
-      console.log('这是什么情况');
+    if (this.scrollTop + this.vp.height + element.sticky.bottom > element.sticky.container.rect.top + element.sticky.container.rect.height) {
       this.css(element, {
-        bottom: -(element.sticky.container.rect.top + element.sticky.container.rect.height - (this.scrollTop + this.vp.height)) + 'px'
+        bottom: this.scrollTop + this.vp.height - (element.sticky.container.rect.top + element.sticky.container.rect.height) + element.sticky.bottom + 'px'
       });
     } else {
       this.css(element, {
