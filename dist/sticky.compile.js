@@ -91,6 +91,7 @@ var Sticky = function () {
     element.sticky.stickyFor = parseInt(element.getAttribute('data-sticky-for')) || this.options.stickyFor;
     element.sticky.stickyClass = element.getAttribute('data-sticky-class') || this.options.stickyClass;
     element.sticky.wrap = element.hasAttribute('data-sticky-wrap') ? true : this.options.wrap;
+    element.sticky.bottom = element.hasAttribute('data-sticky-bottom') ? true : this.options.stickyBottom;
     // @todo attribute for stickyContainer
     // element.sticky.stickyContainer = element.getAttribute('data-sticky-container') || this.options.stickyContainer;
     element.sticky.stickyContainer = this.options.stickyContainer;
@@ -253,7 +254,12 @@ var Sticky = function () {
 
 
   Sticky.prototype.setPosition = function setPosition(element) {
-    this.css(element, { position: '', width: '', top: '', left: '' });
+    this.css(element, {
+      position: '',
+      width: '',
+      top: '',
+      left: ''
+    });
 
     if (this.vp.height < element.sticky.rect.height || !element.sticky.active) {
       return;
@@ -271,6 +277,12 @@ var Sticky = function () {
       });
     }
 
+    if (element.sticky.bottom) {
+      // 如果固定在底部
+      this.setBottomPosition(element);
+      return;
+    }
+
     if (element.sticky.rect.top === 0 && element.sticky.container === this.body) {
       this.css(element, {
         position: 'fixed',
@@ -286,30 +298,61 @@ var Sticky = function () {
       });
 
       if (this.scrollTop + element.sticky.rect.height + element.sticky.marginTop > element.sticky.container.rect.top + element.sticky.container.offsetHeight) {
-
         if (element.sticky.stickyClass) {
           element.classList.remove(element.sticky.stickyClass);
         }
 
         this.css(element, {
-          top: element.sticky.container.rect.top + element.sticky.container.offsetHeight - (this.scrollTop + element.sticky.rect.height) + 'px' });
+          top: element.sticky.container.rect.top + element.sticky.container.offsetHeight - (this.scrollTop + element.sticky.rect.height) + 'px'
+        });
       } else {
         if (element.sticky.stickyClass) {
           element.classList.add(element.sticky.stickyClass);
         }
 
-        this.css(element, { top: element.sticky.marginTop + 'px' });
+        this.css(element, {
+          top: element.sticky.marginTop + 'px'
+        });
       }
     } else {
       if (element.sticky.stickyClass) {
         element.classList.remove(element.sticky.stickyClass);
       }
 
-      this.css(element, { position: '', width: '', top: '', left: '' });
+      this.css(element, {
+        position: '',
+        width: '',
+        top: '',
+        left: ''
+      });
 
       if (element.sticky.wrap) {
-        this.css(element.parentNode, { display: '', width: '', height: '' });
+        this.css(element.parentNode, {
+          display: '',
+          width: '',
+          height: ''
+        });
       }
+    }
+  };
+
+  Sticky.prototype.setBottomPosition = function setBottomPosition(element) {
+    // 如果超出容器了，那么跟随容器滚动，如果没有，那么一直置底
+    this.css(element, {
+      position: 'fixed',
+      width: element.sticky.rect.width + 'px',
+      left: element.sticky.rect.left + 'px'
+    });
+
+    if (this.scrollTop + this.vp.height > element.sticky.container.rect.top + element.sticky.container.rect.height) {
+      console.log('这是什么情况');
+      this.css(element, {
+        bottom: -(element.sticky.container.rect.top + element.sticky.container.rect.height - (this.scrollTop + this.vp.height)) + 'px'
+      });
+    } else {
+      this.css(element, {
+        bottom: 0
+      });
     }
   };
 
@@ -374,7 +417,12 @@ var Sticky = function () {
 
 
   Sticky.prototype.getRectangle = function getRectangle(element) {
-    this.css(element, { position: '', width: '', top: '', left: '' });
+    this.css(element, {
+      position: '',
+      width: '',
+      top: '',
+      left: ''
+    });
 
     var width = Math.max(element.offsetWidth, element.clientWidth, element.scrollWidth);
     var height = Math.max(element.offsetHeight, element.clientHeight, element.scrollHeight);
@@ -388,7 +436,12 @@ var Sticky = function () {
       element = element.offsetParent;
     } while (element);
 
-    return { top: top, left: left, width: width, height: height };
+    return {
+      top: top,
+      left: left,
+      width: width,
+      height: height
+    };
   };
 
   /**
@@ -458,7 +511,9 @@ var Sticky = function () {
   if (typeof exports !== 'undefined') {
     module.exports = factory;
   } else if (typeof define === 'function' && define.amd) {
-    define([], factory);
+    define([], function () {
+      return factory;
+    });
   } else {
     root.Sticky = factory;
   }
